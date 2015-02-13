@@ -96,127 +96,130 @@ def dismissal_handler(how_out):
 
 def score_data(base_url):
 	#base_url = 'http://www.espncricinfo.com/carlton-mid-triangular-series-2015/engine/match/754751.html'
-	player_dict={}
-	html = crawl(base_url)
-	print "Page crawled."
-	parsed_html = BeautifulSoup(html)
-
 	all_stats={} # STORES *ALL* THE STATS OF *ALL* THE PLAYERS INVOLVED IN THE MATCH
 	fielding_stats={}
-	bat_table=parsed_html.findAll("table",{ "class" : "batting-table innings" })
+	error=''
+	try:
+	    player_dict={}
+	    html = crawl(base_url)
+	    print "Page crawled."
+	    parsed_html = BeautifulSoup(html)
+	    bat_table=parsed_html.findAll("table",{ "class" : "batting-table innings" })
 
-	for table in bat_table:
-		rows=table.findAll("tr",{"class":None})
-		
-		# BATTING TABLE PARSER FOR BOTH INNINGS
-		
-		for row in rows:
-			playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0,"runouts":0,"catches":0, "stumpings":0, "oversbowled":0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
-			name=""
-			batScore=0
-			runs=0
-			fields=row.findAll("td")
-			for i in range(0,8):
-				if(i==1):
-					left="view the player profile for "
-					right="\" "
-					name = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
-				if(i>=2 and i<=8):
-					left=">"
-					right="</td>"
-					result = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
-					#print result,
-					if(i==2):
-						d=dismissal_handler(result)
-						for entry in d:
-							name = entry[0]
-							stats = entry[1]
-							if name in fielding_stats:
-							    for key in stats:
-								fielding_stats[name][key]+=stats[key]
-							else:
-							    fielding_stats[name]=stats
+	    for table in bat_table:
+		    rows=table.findAll("tr",{"class":None})
+		    
+		    # BATTING TABLE PARSER FOR BOTH INNINGS
+		    
+		    for row in rows:
+			    playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0,"oversbowled":0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
+			    name=""
+			    batScore=0
+			    runs=0
+			    fields=row.findAll("td")
+			    for i in range(0,8):
+				    if(i==1):
+					    left="view the player profile for "
+					    right="\" "
+					    name = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
+				    if(i>=2 and i<=8):
+					    left=">"
+					    right="</td>"
+					    result = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
+					    #print result,
+					    if(i==2):
+						    d=dismissal_handler(result)
+						    for entry in d:
+							    name = entry[0]
+							    stats = entry[1]
+							    if name in fielding_stats:
+								for key in stats:
+								    fielding_stats[name][key]+=stats[key]
+							    else:
+								fielding_stats[name]=stats
 
-					if(i==3):
-						runs=int(result.strip())
-						if(runs==0):
-							batScore=batScore-5 #IMPACT DUCK
-						batScore=batScore+runs #RUNS SCORE
-						playerstatdict["runsmade"]=runs
-						batScore=batScore+(runs/25)*10 #MILESTONE BONUS
-					if(i==5):
-						batScore=batScore+runs-int(result.strip()) #PACE BONUS
-						playerstatdict["ballsfaced"]=int(result.strip())
-					if(i==6):
-						playerstatdict["fours"]=int(result.strip())
-					if(i==7):
-						batScore=batScore+int(result.strip())*2 #IMPACT SIXES
-						playerstatdict["sixes"]=int(result.strip())
-			#print"  BATSCORE:",batScore
-			print ""
-			if name in player_dict:
-				player_dict[name]=player_dict[name]+batScore
-			else:
-				player_dict[name]=batScore
-			#print name, "BAT,", batScore
-		
-			all_stats[name]=playerstatdict
-	bowl_table=parsed_html.findAll("table",{ "class" : "bowling-table" })
-	for table in bowl_table:
-		rows=table.findAll("tr",{"class":None})
-		
-		# BOWLING TABLE PARSER FOR BOTH INNINGS
-		
-		for row in rows:
-			playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0,"runouts":0,"catches":0, "stumpings":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
-			name=""
-			bowlScore=0
-			balls=0
-			fields=row.findAll("td")
-			for i in range(0,10):
-				if(i==1):
-					left="view the player profile for "
-					right="\" "
-					#print  name,
-					name = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
-				if(i>=2 and i<=10):
-					left=">"
-					right="</td>"
-					result = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
-					#print result,
-					if(i==3):
-						maidens=int(result.strip())
-						playerstatdict["maidenovers"]=maidens
-					if(i==5):
-						wickets=int(result.strip())
-						playerstatdict["wickets"]=wickets
-					if(i==2):
-						overs=float(result.strip())
-						playerstatdict["oversbowled"]=overs
-					if(i==4):
-						runs=int(result.strip())
-						playerstatdict["runsgiven"]=runs
-					if(i==7):
-						dots=int(result.strip()) 
-						playerstatdict["dotsbowled"]=dots
-					
-			#print"  BATSCORE:",batScore
-			print ""
-			if name in player_dict:
-				player_dict[name]=player_dict[name]+bowlScore
-			else:
-				player_dict[name]=bowlScore
-			print name, "BOWL,", bowlScore
-			
-			if name in all_stats:
-				all_stats[name]["oversbowled"]=playerstatdict["oversbowled"]
-				all_stats[name]["maidenovers"]=playerstatdict["maidenovers"]
-				all_stats[name]["runsgiven"]=playerstatdict["runsgiven"]
-				all_stats[name]["wickets"]=playerstatdict["wickets"]
-				all_stats[name]["dotsbowled"]=playerstatdict["dotsbowled"]
-			else:
-				all_stats[name]=playerstatdict
-	return [all_stats,fielding_stats]
+					    if(i==3):
+						    runs=int(result.strip())
+						    if(runs==0):
+							    batScore=batScore-5 #IMPACT DUCK
+						    batScore=batScore+runs #RUNS SCORE
+						    playerstatdict["runsmade"]=runs
+						    batScore=batScore+(runs/25)*10 #MILESTONE BONUS
+					    if(i==5):
+						    batScore=batScore+runs-int(result.strip()) #PACE BONUS
+						    playerstatdict["ballsfaced"]=int(result.strip())
+					    if(i==6):
+						    playerstatdict["fours"]=int(result.strip())
+					    if(i==7):
+						    batScore=batScore+int(result.strip())*2 #IMPACT SIXES
+						    playerstatdict["sixes"]=int(result.strip())
+			    #print"  BATSCORE:",batScore
+			    print ""
+			    if name in player_dict:
+				    player_dict[name]=player_dict[name]+batScore
+			    else:
+				    player_dict[name]=batScore
+			    #print name, "BAT,", batScore
+		    
+			    all_stats[name]=playerstatdict
+	    bowl_table=parsed_html.findAll("table",{ "class" : "bowling-table" })
+	    for table in bowl_table:
+		    rows=table.findAll("tr",{"class":None})
+		    
+		    # BOWLING TABLE PARSER FOR BOTH INNINGS
+		    
+		    for row in rows:
+			    playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
+			    name=""
+			    bowlScore=0
+			    balls=0
+			    fields=row.findAll("td")
+			    for i in range(0,10):
+				    if(i==1):
+					    left="view the player profile for "
+					    right="\" "
+					    #print  name,
+					    name = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
+				    if(i>=2 and i<=10):
+					    left=">"
+					    right="</td>"
+					    result = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
+					    #print result,
+					    if(i==3):
+						    maidens=int(result.strip())
+						    playerstatdict["maidenovers"]=maidens
+					    if(i==5):
+						    wickets=int(result.strip())
+						    playerstatdict["wickets"]=wickets
+					    if(i==2):
+						    overs=float(result.strip())
+						    playerstatdict["oversbowled"]=overs
+					    if(i==4):
+						    runs=int(result.strip())
+						    playerstatdict["runsgiven"]=runs
+					    if(i==7):
+						    dots=int(result.strip()) 
+						    playerstatdict["dotsbowled"]=dots
+					    
+			    #print"  BATSCORE:",batScore
+			    print ""
+			    if name in player_dict:
+				    player_dict[name]=player_dict[name]+bowlScore
+			    else:
+				    player_dict[name]=bowlScore
+			    print name, "BOWL,", bowlScore
+			    
+			    if name in all_stats:
+				    all_stats[name]["oversbowled"]=playerstatdict["oversbowled"]
+				    all_stats[name]["maidenovers"]=playerstatdict["maidenovers"]
+				    all_stats[name]["runsgiven"]=playerstatdict["runsgiven"]
+				    all_stats[name]["wickets"]=playerstatdict["wickets"]
+				    all_stats[name]["dotsbowled"]=playerstatdict["dotsbowled"]
+			    else:
+				    all_stats[name]=playerstatdict
+	except Exception as e:
+	    error=e
+	return [all_stats,fielding_stats,error]
 	    
 #print player_dict
 print score_data('http://www.espncricinfo.com/carlton-mid-triangular-series-2015/engine/match/754751.html')
