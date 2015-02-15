@@ -1,4 +1,6 @@
 import re
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 
 fielding_stats={}
 def dismissal_handler(how_out):
@@ -62,10 +64,10 @@ def dismissal_handler(how_out):
 			fielding_stats[bowler]["runouts"]+=1
 		else:
 			fielding_stats[bowler]=fieldingstat
-		print t[0]
+		#print t[0]
 		if(len(t)==2):
 			other=t[1].strip()
-			print other
+			#print other
 		fieldingstat["runouts"]=1
 		if other in fielding_stats:
 			fielding_stats[other]["runouts"]+=1
@@ -77,3 +79,5 @@ def dismissal_handler(how_out):
 		print "NOT OUT"
 
 dismissal_handler("run out (Bopara/Jordan)")
+lst=['Steven Smith', 'Brendan McCullum', 'Nathan McCullum', 'Rohan Sharma', 'Jos Buttler', 'Eoin Morgan', 'Mitchell Starc', 'Ravi Bopara', 'James Faulkner', 'Chris Woakes', 'David Warner', 'Moeen Ali', 'Pat Cummins', 'Joe Root', 'Xavier Doherty', 'Glenn Maxwell', 'Ian Bell', 'Aaron Finch', 'Steven Finn', 'George Bailey', 'Chris Jordan', 'Shane Watson']
+print process.extractOne("BK McCullum",lst)

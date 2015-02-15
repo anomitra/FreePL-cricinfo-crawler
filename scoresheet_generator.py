@@ -3,6 +3,8 @@ import time
 from BeautifulSoup import BeautifulSoup
 import re
 import pickle
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 from time import sleep
 
 """ HANDLES THE DISMISSAL DETAILS -- INCLUDING THE TYPE OF DISMISSAL AND THE PERPETRATORS"""
@@ -57,24 +59,29 @@ def dismissal_handler(how_out):
 		else:
 			fielding_stats[other]=fieldingstat
 	if(re.match('run out.*',how_out)): #RUN OUT
-		left="("
+		left="run out ("
 		right=")"
 		thrower = re.search('%s(.*)%s' % (left, right), how_out).group(1)
+		#print thrower
+		thrower=thrower.strip()
+		thrower=thrower[1:len(thrower)-1]
 		t=thrower.split('/')
-		bowler=t[0]
+		bowler=t[0].strip()
 		fieldingstat["runouts"]=1
 		if bowler in fielding_stats:
 			fielding_stats[bowler]["runouts"]+=1
 		else:
 			fielding_stats[bowler]=fieldingstat
+		#print t[0]
 		if(len(t)==2):
-			other=t[1]
+			other=t[1].strip()
+			#print other
 		fieldingstat["runouts"]=1
 		if other in fielding_stats:
 			fielding_stats[other]["runouts"]+=1
 		else:
 			fielding_stats[other]=fieldingstat
-		print "RUN OUT",t
+		#print "RUN OUT",t[0],t[1]
 	
 	if(how_out.strip()=="not out"): #NOT OUT
 		print "NOT OUT"
@@ -218,8 +225,25 @@ for table in bowl_table:
 		
 #print player_dict
 print "\n \n \n"
-print all_stats
-print fielding_stats
+
+tbl=parsed_html.find("div",{ "class" : "match-information" })
+stts=tbl.findAll("div",{ "class" : "bold space-top-bottom-10"})
+mom=str(stts[1].find("span",{"class":"normal"}).text)
+name=mom.split(" ")
+mom_name=name[0]+name[1]
+
+
+# DNB AND MOM MODIFIER #
+for player in all_stats:
+	if(all_stats[player]["ballsfaced"]==0):
+		all_stats[player]["dnb"]=1
+
+print process.extractOne(mom_name,all_stats.keys())
+
+#print all_stats
+#print fielding_stats
+#print "Man Of The Match: ",name
+#print name
 #print rows[1].findAll("td")
 #print bat_table
 #print parsed_html
