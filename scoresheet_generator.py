@@ -74,6 +74,7 @@ def dismissal_handler(how_out):
 			fielding_stats[bowler]=fieldingstat
 		#print t[0]
 		if(len(t)==2):
+			print "RO2!"
 			other=t[1].strip()
 			#print other
 		fieldingstat["runouts"]=1
@@ -116,7 +117,7 @@ for table in bat_table:
 	# BATTING TABLE PARSER FOR BOTH INNINGS
 	
 	for row in rows:
-		playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
+		playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
 		name=""
 		batScore=0
 		runs=0
@@ -164,7 +165,7 @@ for table in bowl_table:
 	# BOWLING TABLE PARSER FOR BOTH INNINGS
 	
 	for row in rows:
-		playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0}
+		playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
 		name=""
 		bowlScore=0
 		balls=0
@@ -240,8 +241,27 @@ for player in all_stats:
 
 print process.extractOne(mom_name,all_stats.keys())
 
-#print all_stats
-#print fielding_stats
+print all_stats
+print fielding_stats
+
+print "-------TESTING--------"
+for player in fielding_stats:
+	print player,
+	match=process.extractOne(player,all_stats.keys())
+	if(match[1]>65): #CORRECT MATCH
+		all_stats[match[0]]["catches"]=fielding_stats[player]["catches"]
+		all_stats[match[0]]["stumpings"]=fielding_stats[player]["stumpings"]
+		all_stats[match[0]]["runouts"]=fielding_stats[player]["runouts"]
+	if(match[1]==0): # DUMMY ROW
+		continue
+	if(match[1]>20 and match[1]<65):
+		playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
+		all_stats[player]=playerstatdict
+		all_stats[player]["catches"]=fielding_stats[player]["catches"]
+		all_stats[player]["stumpings"]=fielding_stats[player]["stumpings"]
+		all_stats[player]["runouts"]=fielding_stats[player]["runouts"]
+		
+print all_stats
 #print "Man Of The Match: ",name
 #print name
 #print rows[1].findAll("td")
