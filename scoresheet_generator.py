@@ -239,10 +239,9 @@ for player in all_stats:
 	if(all_stats[player]["ballsfaced"]==0):
 		all_stats[player]["dnb"]=1
 
-print process.extractOne(mom_name,all_stats.keys())
+momname=process.extractOne(mom_name,all_stats.keys())[0]
 
-print all_stats
-print fielding_stats
+all_stats[momname]["mom"]=1
 
 print "-------TESTING--------"
 for player in fielding_stats:
