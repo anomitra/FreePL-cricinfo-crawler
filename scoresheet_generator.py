@@ -22,7 +22,7 @@ def dismissal_handler(how_out):
 		other = re.search('%s(.*)%s' % (left, right), how_out).group(1)
 		left="b "
 		bowler = re.search('%s(.*)' % (left), how_out).group(1)
-		print "CAUGHT ", other, bowler
+		#print "CAUGHT ", other, bowler
 		fieldingstat["catches"]=1
 		other=other.strip()
 		if other in fielding_stats:
@@ -32,15 +32,15 @@ def dismissal_handler(how_out):
 	if(re.match('lbw b.*',how_out)): #LEG BEFORE WICKET
 		left="lbw b "
 		bowler=re.search('%s(.*)' % (left), how_out).group(1)
-		print "LBW ",bowler
+		##print "LBW ",bowler
 	if(re.match('b.*',how_out)): #BOWLED
 		left="b "
 		bowler=re.search('%s(.*)' % (left), how_out).group(1)
-		print "BOWLED ",bowler
+		#print "BOWLED ",bowler
 	if(re.match('c & b .*',how_out)): #CAUGHT AND BOWLED
 		left="c & b "
 		bowler=re.search('%s(.*)' % (left), how_out).group(1)
-		print "CAUGHT+BOWLED ",bowler
+		#print "CAUGHT+BOWLED ",bowler
 		bowler=bowler.strip()
 		fieldingstat["catches"]=1
 		if bowler in fielding_stats:
@@ -54,7 +54,7 @@ def dismissal_handler(how_out):
 		left="b "
 		fieldingstat["stumpings"]=1
 		bowler = re.search('%s(.*)' % (left), how_out).group(1)
-		print "STUMPED ", other, bowler
+		#print "STUMPED ", other, bowler
 		if other in fielding_stats:
 			fielding_stats[other]["stumpings"]+=1
 		else:
@@ -73,17 +73,17 @@ def dismissal_handler(how_out):
 			fielding_stats[bowler]["runouts"]+=1
 		else:
 			fielding_stats[bowler]=fieldingstat
-		#print t[0]
+		##print t[0]
 		if(len(t)==2):
-			print "RO2!"
+			#print "RO2!"
 			other=t[1].strip()
-			#print other
+			##print other
 		fieldingstat["runouts"]=1
 		if other in fielding_stats:
 			fielding_stats[other]["runouts"]+=1
 		else:
 			fielding_stats[other]=fieldingstat
-		#print "RUN OUT",t[0],t[1]
+		##print "RUN OUT",t[0],t[1]
 	
 	if(how_out.strip()=="not out"): #NOT OUT
 		print "NOT OUT"
@@ -132,8 +132,8 @@ def scorecard_getter(URL):
 				if(i>=2 and i<=8):
 					left=">"
 					right="<"
-					print "I IS ",i
-					print fields[i]
+					#print "I IS ",i
+					#print fields[i]
 					result = re.search('%s(.*)%s' % (left, right), str(fields[i])).group(1)
 					#print result,
 					if(i==2):
@@ -154,7 +154,7 @@ def scorecard_getter(URL):
 						batScore=batScore+int(result.strip())*2 #IMPACT SIXES
 						playerstatdict["sixes"]=int(result.strip())
 			#print"  BATSCORE:",batScore
-			print ""
+			#print ""
 			if name in player_dict:
 				player_dict[name]=player_dict[name]+batScore
 			else:
@@ -212,7 +212,7 @@ def scorecard_getter(URL):
 						playerstatdict["dotsbowled"]=dots
 					
 			#print"  BATSCORE:",batScore
-			print ""
+			#print ""
 			if name in player_dict:
 				player_dict[name]=player_dict[name]+bowlScore
 			else:
@@ -230,13 +230,13 @@ def scorecard_getter(URL):
 			all_stats[name]["funscore"]+=bowlScore
 			
 	#print player_dict
-	print "\n \n \n"
+	#print "\n \n \n"
 	
 	tbl=parsed_html.find("div",{ "class" : "match-information" })
 	stts=tbl.findAll("div",{ "class" : "bold space-top-bottom-10"})
 	momstr=str(stts[1])
 	momstr=momstr.replace("\n"," ")
-	print momstr
+	#print momstr
 	left="match   - <span class=\"normal\">"
 	right="</span>"
 	result = re.search('%s(.*)%s' % (left, right), momstr).group(0)
@@ -244,10 +244,10 @@ def scorecard_getter(URL):
 	right="<"
 	result = re.search('%s(.*)%s' % (left, right), result).group(0)
 	result=result[1:len(result)-1]
-	print result
+	#print result
 	name=result.split(" ")
 	mom_name=name[0]+name[1]
-	print mom_name
+	#print mom_name
 	
 	
 	# DNB AND MOM MODIFIER #
@@ -262,14 +262,39 @@ def scorecard_getter(URL):
 	
 	print "-------TESTING--------"
 	for player in fielding_stats:
-		print player,
 		match=process.extractOne(player,all_stats.keys())
+		if(match[1]==0): # DUMMY ROW
+			continue
+		print player,"!"
+		matchstr=""
+		# DEALING WITH THE KEEPER AND HIS BULLSHIT SYMBOL
+		if(player[0].isalnum()==0):
+			ctr=0
+			for a in player:
+				if(a==';'):
+					matchstr=player[ctr+1:]
+				ctr+=1
+		# DEALING WITH SUBSTITUTES WHO SHOW UP ON THE PITCH AT RANDOM
+		elif(player[0:3]=="sub"):
+			continue
+		else:
+			matchstr=player
+		print matchstr
+		matchArr = process.extract(matchstr,all_stats.keys(),limit=2)
+		if(matchArr[0][1]-matchArr[1][1]<=2):
+			print "Too close for comfort!"
+			if(matchArr[0][0][0]==matchstr[1]):
+				match=matchArr[0]
+			elif(matchArr[1][0][0]==matchstr[1]):
+				match=matchArr[1]
+			print match
+		else:
+			match=matchArr[0]
+		print matchstr,match
 		if(match[1]>65): #CORRECT MATCH
 			all_stats[match[0]]["catches"]=fielding_stats[player]["catches"]
 			all_stats[match[0]]["stumpings"]=fielding_stats[player]["stumpings"]
 			all_stats[match[0]]["runouts"]=fielding_stats[player]["runouts"]
-		if(match[1]==0): # DUMMY ROW
-			continue
 		if(match[1]>20 and match[1]<65):
 			playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
 			all_stats[player]=playerstatdict
@@ -291,3 +316,4 @@ MatchFinalStats=scorecard_getter(sys.argv[1])
 print "\n\n\n\n\n\n"
 for name in MatchFinalStats:
 	print name," : ",MatchFinalStats[name]["funscore"]
+	#print MatchFinalStats["Shikhar Dhawan"]
