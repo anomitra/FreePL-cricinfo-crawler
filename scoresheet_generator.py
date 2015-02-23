@@ -281,7 +281,8 @@ def scorecard_getter(URL):
 			matchstr=player
 		print matchstr
 		matchArr = process.extract(matchstr,all_stats.keys(),limit=2)
-		if(matchArr[0][1]-matchArr[1][1]<=2):
+		ml=len(matchArr)
+		if( matchArr[0][1]-matchArr[1][1]<=2 & ml==2 & len(matchstr)==2 ):
 			print "Too close for comfort!"
 			if(matchArr[0][0][0]==matchstr[1]):
 				match=matchArr[0]
@@ -297,10 +298,10 @@ def scorecard_getter(URL):
 			all_stats[match[0]]["runouts"]=fielding_stats[player]["runouts"]
 		if(match[1]>20 and match[1]<65):
 			playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
-			all_stats[player]=playerstatdict
-			all_stats[player]["catches"]=fielding_stats[player]["catches"]
-			all_stats[player]["stumpings"]=fielding_stats[player]["stumpings"]
-			all_stats[player]["runouts"]=fielding_stats[player]["runouts"]
+			all_stats[matchstr]=playerstatdict
+			all_stats[matchstr]["catches"]=fielding_stats[player]["catches"]
+			all_stats[matchstr]["stumpings"]=fielding_stats[player]["stumpings"]
+			all_stats[matchstr]["runouts"]=fielding_stats[player]["runouts"]
 			
 	for x in all_stats:
 	    all_stats[x]["funscore"]+= all_stats[x]["catches"]*10+all_stats[x]["stumpings"]*15+all_stats[x]["runouts"]*10
@@ -316,4 +317,3 @@ MatchFinalStats=scorecard_getter(sys.argv[1])
 print "\n\n\n\n\n\n"
 for name in MatchFinalStats:
 	print name," : ",MatchFinalStats[name]["funscore"]
-	#print MatchFinalStats["Shikhar Dhawan"]
