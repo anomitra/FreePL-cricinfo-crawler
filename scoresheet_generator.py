@@ -279,6 +279,7 @@ def scorecard_getter(URL):
 			
 	for x in all_stats:
 	    all_stats[x]["funscore"]+= all_stats[x]["catches"]*10+all_stats[x]["stumpings"]*15+all_stats[x]["runouts"]*10
+	all_stats.pop("&amp;",None)
 	return all_stats
 	#print "Man Of The Match: ",name
 	#print name
