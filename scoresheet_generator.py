@@ -231,7 +231,16 @@ def scorecard_getter(URL):
 			
 	#print player_dict
 	#print "\n \n \n"
-	
+	dnblist=[]
+	did_not_bat=parsed_html.findAll("div",{ "class" : "to-bat" })
+	for innings in did_not_bat:
+		lst=innings.findAll("span",{"class":"bold"})
+		for plyr in lst:
+			left="view the player profile for "
+			right="\" "
+			name = re.search('%s(.*)%s' % (left, right), str(plyr)).group(1)
+			dnblist.append(name)
+	print dnblist
 	tbl=parsed_html.find("div",{ "class" : "match-information" })
 	stts=tbl.findAll("div",{ "class" : "bold space-top-bottom-10"})
 	momstr=str(stts[1])
@@ -296,7 +305,19 @@ def scorecard_getter(URL):
 			all_stats[match[0]]["catches"]=fielding_stats[player]["catches"]
 			all_stats[match[0]]["stumpings"]=fielding_stats[player]["stumpings"]
 			all_stats[match[0]]["runouts"]=fielding_stats[player]["runouts"]
-		if(match[1]>20 and match[1]<65):
+		if(match[1]>10 and match[1]<65):
+			matchArr = process.extract(matchstr,dnblist,limit=2)
+			ml=len(matchArr)
+			if( matchArr[0][1]-matchArr[1][1]<=2 & ml==2 & len(matchstr)==2 ):
+				print "Too close for comfort!"
+				if(matchArr[0][0][0]==matchstr[1]):
+					match=matchArr[0]
+				elif(matchArr[1][0][0]==matchstr[1]):
+					match=matchArr[1]
+				print match
+			else:
+				match=matchArr[0]
+			matchstr=match[0]
 			playerstatdict={"runsmade":0, "wickets":0, "ballsfaced":0, "fours":0, "sixes":0, "oversbowled":0.0, "maidenovers":0, "runsgiven":0, "dotsbowled":0, "mom":0, "dnb":0, "funscore":0, "catches":0, "stumpings":0, "runouts":0}
 			all_stats[matchstr]=playerstatdict
 			all_stats[matchstr]["catches"]=fielding_stats[player]["catches"]
